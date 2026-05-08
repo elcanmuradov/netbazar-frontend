@@ -169,7 +169,7 @@ const Register = () => {
                                 type="text"
                                 name="name"
                                 required
-                                placeholder="Market Adı "
+                                placeholder="Ad"
                                 value={formData.name}
                                 onChange={handleChange}
                                 style={inputStyle}
