@@ -1,8 +1,15 @@
 import React, { createContext, useState, useEffect } from 'react';
-import jwtDecode from 'jwt-decode';
 import api from '../api/axios';
 
 export const AuthContext = createContext();
+
+const jwtDecode = (token) => {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(window.atob(base64));
+};
+
+
 
 const isProtectedRoute = (path) => {
     const protectedPrefixes = ['/profile', '/favorites', '/chat', '/add-product', '/edit-product', '/admin', '/seller/dashboard', '/orders'];
