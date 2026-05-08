@@ -70,7 +70,7 @@ const Orders = () => {
                                         <p style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>Sifariş nömrəsi: {order.id} | Say: {order.quantity || 1}</p>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: 800, color: 'var(--primary)' }}>{order.totalPrice} ₼</div>
+                                        <div style={{ fontWeight: 800, color: 'var(--primary)' }}>{Number.isFinite(Number(order.totalPrice)) ? Number(order.totalPrice).toFixed(2) : '0.00'} ₼</div>
                                         <div style={{ color: 'var(--text-light)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'flex-end' }}>
                                             <CreditCard size={16} /> {order.paymentMethod}
                                         </div>

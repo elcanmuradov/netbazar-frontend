@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Truck, CreditCard, Bell, X, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Package, ShoppingBag, Truck, CreditCard, Bell, X, ArrowRight, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
@@ -21,7 +21,8 @@ const StatCard = ({ label, value, icon: Icon, color }) => (
 );
 
 const SellerDashboard = () => {
-    const { user, token } = useContext(AuthContext);
+    const { user, token, logout } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [recentOrders, setRecentOrders] = useState([]);
     const [notifications, setNotifications] = useState([]);
@@ -80,6 +81,11 @@ const SellerDashboard = () => {
 
     if (loading) return <div className="seller-loading">Yüklənir...</div>;
 
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
+
     return (
         <div className="seller-page">
             {/* Notifications */}
@@ -99,8 +105,21 @@ const SellerDashboard = () => {
             )}
 
             <div className="seller-page-header">
-                <h1>Xoş gəlmisiniz 👋</h1>
-                <p>Satıcı panelinizə ümumi baxış</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div>
+                        <h1>Xoş gəlmisiniz 👋</h1>
+                        <p>Satıcı panelinizə ümumi baxış</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="seller-logout"
+                        style={{ width: 'auto', border: '1px solid var(--border)', padding: '0.7rem 1rem' }}
+                    >
+                        <LogOut size={18} />
+                        <span>Çıxış</span>
+                    </button>
+                </div>
             </div>
 
             {/* Stats */}

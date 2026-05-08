@@ -46,13 +46,42 @@ const Home = () => {
     const [previewCache, setPreviewCache] = useState({});
     const [countdown, setCountdown] = useState(DEFAULT_COUNTDOWN);
     const [platformPromos, setPlatformPromos] = useState([]);
+    const [campaigns, setCampaigns] = useState([]);
+
+    const applyCampaignDiscount = (basePrice, campaign) => {
+        if (!campaign) return Number(basePrice) || 0;
+        const safeBase = Math.max(0, Number(basePrice) || 0);
+        if (campaign.discountType === 'PERCENTAGE') {
+            const percent = Math.min(100, Math.max(0, Number(campaign.discountValue) || 0));
+            return Math.max(0, safeBase * (1 - percent / 100));
+        }
+        return Math.max(0, safeBase - (Number(campaign.discountValue) || 0));
+    };
+
+    const getActiveCampaign = () => {
+        return campaigns && campaigns.length > 0 ? campaigns[0] : null;
+    };
+
+    const calculateDiscountedPrice = (basePrice) => {
+        const campaign = getActiveCampaign();
+        if (!campaign) return { discountedPrice: basePrice, discountPercentage: 0 };
+        const discounted = applyCampaignDiscount(basePrice, campaign);
+        const percentage = campaign.discountType === 'PERCENTAGE'
+            ? Math.min(100, Math.max(0, Number(campaign.discountValue) || 0))
+            : Math.round(((Number(basePrice) - discounted) / Number(basePrice)) * 100);
+        return {
+            discountedPrice: discounted,
+            discountPercentage: percentage
+        };
+    };
 
     useEffect(() => {
         const fetchCampaigns = async () => {
             try {
                 const response = await api.get('/campaigns');
-                const campaigns = response?.data?.data || [];
-                const mapped = campaigns.map((c, i) => ({
+                const campaignsData = response?.data?.data || [];
+                setCampaigns(campaignsData);
+                const mapped = campaignsData.map((c, i) => ({
                     id: c.id,
                     tag: c.discountType === 'PERCENTAGE' ? `-${c.discountValue}%` : `-${c.discountValue}₼`,
                     title: c.name,
@@ -753,6 +782,7 @@ const Home = () => {
                                 product={product}
                                 previewImage={readPreviewImage(previewCache, product.id)}
                                 index={index}
+                                calculateDiscountedPrice={calculateDiscountedPrice}
                             />
                         ))
                     ) : (
@@ -794,6 +824,7 @@ const Home = () => {
                                 product={product}
                                 previewImage={readPreviewImage(previewCache, product.id)}
                                 index={index + 5}
+                                calculateDiscountedPrice={calculateDiscountedPrice}
                             />
                         ))
                     ) : (
@@ -869,17 +900,18 @@ const Home = () => {
 
 const listingIcons = [ShoppingBag, Camera, Smartphone, Shirt, HomeIcon, Dumbbell, BookOpen, CarFront, Apple, Wrench, Headphones, Gamepad2];
 
-const MarketProductCard = ({ product, previewImage, index }) => {
+const MarketProductCard = ({ product, previewImage, index, calculateDiscountedPrice }) => {
     const navigate = useNavigate();
     const primaryImage = Array.isArray(product.imageUrls) && product.imageUrls.length > 0
         ? product.imageUrls[0]
         : previewImage;
     const ListingIcon = listingIcons[index % listingIcons.length];
     const isNew = product.isNew === true || product.isNew === 'true' || product.isNew === 1;
-    const hasDiscount = product.discountedPrice && product.discountedPrice < product.price;
-    const currentPrice = hasDiscount ? product.discountedPrice : product.price;
-    const formattedPrice = Number.isFinite(Number(currentPrice)) ? Number(currentPrice).toFixed(0) : '';
-    const originalPriceFormatted = Number.isFinite(Number(product.price)) ? Number(product.price).toFixed(0) : '';
+    const discountInfo = calculateDiscountedPrice(product.price);
+    const hasDiscount = discountInfo.discountPercentage > 0;
+    const currentPrice = hasDiscount ? discountInfo.discountedPrice : product.price;
+    const formattedPrice = Number.isFinite(Number(currentPrice)) ? Number(currentPrice).toFixed(2) : '';
+    const originalPriceFormatted = Number.isFinite(Number(product.price)) ? Number(product.price).toFixed(2) : '';
 
     const rating = index % 2 === 0 ? '★★★★★' : '★★★★☆';
     const reviewCount = index % 2 === 0 ? '(1.2k)' : '(430)';
@@ -893,7 +925,7 @@ const MarketProductCard = ({ product, previewImage, index }) => {
             className="market-card"
         >
             {hasDiscount ? (
-                <div className="badge-sale">-{product.discountPercentage}%</div>
+                <div className="badge-sale">-{discountInfo.discountPercentage}%</div>
             ) : isNew ? (
                 <div className="badge-new">Yeni</div>
             ) : (

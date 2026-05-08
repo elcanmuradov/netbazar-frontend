@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Users, ShieldAlert, TrendingUp, ArrowUpRight, BarChart3, Clock, CheckCircle2, CloudOff } from 'lucide-react';
+import { ShoppingBag, Users, ShieldAlert, TrendingUp, ArrowUpRight, BarChart3, Clock, CheckCircle2, CloudOff, Store } from 'lucide-react';
 import api from '../../api/axios';
 import './Dashboard.css';
 
@@ -8,9 +8,11 @@ const Dashboard = () => {
         productCount: 0,
         reportedMessagesCount: 0,
         userCount: 0,
+        sellerCount: 0,
         activeReports: 0,
         productGrowth: 0,
-        userGrowth: 0
+        userGrowth: 0,
+        sellerGrowth: 0
     });
     const [loading, setLoading] = useState(true);
     const [clearingCloud, setClearingCloud] = useState(false);
@@ -25,9 +27,11 @@ const Dashboard = () => {
                     productCount: data.totalProducts,
                     reportedMessagesCount: data.totalReports,
                     userCount: data.totalUsers,
+                    sellerCount: data.totalSellers,
                     activeReports: data.activeReports,
                     productGrowth: data.productGrowth,
-                    userGrowth: data.userGrowth
+                    userGrowth: data.userGrowth,
+                    sellerGrowth: data.sellerGrowth
                 });
             } catch (error) {
                 console.error("Error fetching admin stats", error);
@@ -96,41 +100,12 @@ const Dashboard = () => {
             <div className="stats-grid">
                 <StatCard title="Ümumi məhsul" value={stats.productCount} icon={ShoppingBag} color="green" trend={stats.productGrowth} />
                 <StatCard title="Ümumi istifadəçi" value={stats.userCount} icon={Users} color="blue" trend={stats.userGrowth} />
+                <StatCard title="Ümumi satıcı" value={stats.sellerCount} icon={Store} color="red"  trend={stats.sellerGrowth}/>
                 <StatCard title="Şikayət edilmiş mesajlar" value={stats.reportedMessagesCount} icon={ShieldAlert} color="orange" />
                 <StatCard title="Aktiv müraciətlər" value={stats.activeReports} icon={CheckCircle2} color="purple" />
             </div>
 
             <div className="dashboard-sections">
-                <section className="dashboard-main glass">
-                    <div className="section-header">
-                        <h3>Son aktivlik</h3>
-                        <button className="view-all">Hamısına bax <ArrowUpRight size={16} /></button>
-                    </div>
-                    <div className="activity-list">
-                        <div className="activity-item">
-                            <div className="activity-dot blue"></div>
-                            <div className="activity-info">
-                                <p className="activity-text">Yeni yüksək dəyərli məhsul əlavə olundu: <strong>Canon EOS R5</strong></p>
-                                <span className="activity-time">2 dəqiqə əvvəl</span>
-                            </div>
-                        </div>
-                        <div className="activity-item">
-                            <div className="activity-dot orange"></div>
-                            <div className="activity-info">
-                                <p className="activity-text">İstifadəçi <strong>@tech_enthusiast</strong> <strong>@scammer_99</strong> mesajını şikayət etdi</p>
-                                <span className="activity-time">15 dəqiqə əvvəl</span>
-                            </div>
-                        </div>
-                        <div className="activity-item">
-                            <div className="activity-dot green"></div>
-                            <div className="activity-info">
-                                <p className="activity-text">Satış prosesi <strong>@user1</strong> və <strong>@user2</strong> arasında tamamlandı</p>
-                                <span className="activity-time">45 dəqiqə əvvəl</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
                 <section className="dashboard-side glass">
                     <div className="section-header">
                         <h3>Tez əməliyyatlar</h3>
@@ -145,9 +120,6 @@ const Dashboard = () => {
                             <CloudOff size={18} />
                             {clearingCloud ? 'İcra olunur...' : 'Buludu təmizlə'}
                         </button>
-                        <button className="q-action-btn">Dublikat məhsulları yoxla</button>
-                        <button className="q-action-btn">Ehtiyat nüsxə yarat</button>
-                        <button className="q-action-btn">Sistem yoxlaması</button>
                     </div>
                 </section>
             </div>

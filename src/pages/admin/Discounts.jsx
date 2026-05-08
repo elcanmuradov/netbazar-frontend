@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tag, Search, Plus, Trash2, X, ToggleRight } from 'lucide-react';
 import RefreshBtn from '../../components/admin/RefreshBtn';
+import SellerAutocomplete from '../../components/admin/SellerAutocomplete';
 import api from '../../api/axios';
 import './AdminShared.css';
 
@@ -9,6 +10,7 @@ const EMPTY = { code: '', type: 'PERCENTAGE', value: '', minOrderAmount: '', max
 const DiscountModal = ({ initial, onClose, onSave }) => {
     const [form, setForm] = useState(initial || EMPTY);
     const [saving, setSaving] = useState(false);
+    const [selectedSeller, setSelectedSeller] = useState(null);
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
     const handleSave = async () => {
         if (!form.code || !form.value) return alert('Kod və dəyər tələb olunur');
@@ -32,7 +34,7 @@ const DiscountModal = ({ initial, onClose, onSave }) => {
                     <div className="form-row">
                         <div className="form-group">
                             <label>Promo Kod *</label>
-                            <input value={form.code} onChange={e => set('code', e.target.value.toUpperCase())} placeholder="SWAP10" />
+                            <input value={form.code} onChange={e => set('code', e.target.value.toUpperCase())} placeholder="PROMO KOD" />
                         </div>
                         <div className="form-group">
                             <label>Növ</label>
@@ -78,8 +80,14 @@ const DiscountModal = ({ initial, onClose, onSave }) => {
                             <input type="number" value={form.usageLimit} onChange={e => set('usageLimit', e.target.value)} placeholder="100" />
                         </div>
                         <div className="form-group">
-                            <label>Satıcı ID (boş = platforma)</label>
-                            <input value={form.sellerId} onChange={e => set('sellerId', e.target.value)} placeholder="UUID (isteğe bağlı)" />
+                            <label>Satıcı (boş = platforma)</label>
+                            <SellerAutocomplete 
+                                value={selectedSeller} 
+                                onSelect={(seller) => {
+                                    setSelectedSeller(seller);
+                                    set('sellerId', seller.id);
+                                }} 
+                            />
                         </div>
                     </div>
                 </div>
@@ -97,18 +105,24 @@ const Discounts = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [tab, setTab] = useState('platform');
+    const [sellerForSearch, setSellerForSearch] = useState(null);
+    const [sellerLookupId, setSellerLookupId] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [actionId, setActionId] = useState(null);
 
     const fetchDiscounts = useCallback(async () => {
         setLoading(true);
         try {
-            const endpoint = tab === 'platform' ? '/discounts/platform' : `/discounts/seller/${tab}`;
+            if (tab === 'seller' && !sellerLookupId) {
+                setDiscounts([]);
+                return;
+            }
+            const endpoint = tab === 'platform' ? '/discounts/platform' : `/discounts/seller/${sellerLookupId}`;
             const res = await api.get(endpoint);
             setDiscounts(res.data.data || []);
         } catch { console.error('Discounts fetch error'); }
         finally { setLoading(false); }
-    }, [tab]);
+    }, [tab, sellerLookupId]);
 
     useEffect(() => { fetchDiscounts(); }, [fetchDiscounts]);
 
@@ -145,8 +159,20 @@ const Discounts = () => {
                 <div className="mini-stat-card"><div className="mini-stat-icon green"><Tag size={20} /></div><div><div className="mini-stat-label">Aktiv</div><div className="mini-stat-value">{active}</div></div></div>
             </div>
 
-            <div className="filter-tabs">
+            <div className="filter-tabs" style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button className={tab === 'platform' ? 'active' : ''} onClick={() => setTab('platform')}>Platforma kodları</button>
+                <button className={tab === 'seller' ? 'active' : ''} onClick={() => setTab('seller')}>Satıcı kodları</button>
+                {tab === 'seller' && (
+                    <div style={{ minWidth: '280px' }}>
+                        <SellerAutocomplete 
+                            value={sellerForSearch} 
+                            onSelect={(seller) => {
+                                setSellerForSearch(seller);
+                                setSellerLookupId(seller.id);
+                            }} 
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="table-wrapper glass">
@@ -164,7 +190,7 @@ const Discounts = () => {
                     </thead>
                     <tbody>
                         {filtered.length === 0 ? (
-                            <tr><td colSpan="7" className="empty-row">Endirim tapılmadı.</td></tr>
+                            <tr><td colSpan="7" className="empty-row">{tab === 'seller' && !sellerLookupId ? 'Satıcı seçib Göstər düyməsinə basın.' : 'Endirim tapılmadı.'}</td></tr>
                         ) : filtered.map((d, i) => (
                             <tr key={d.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.04}s` }}>
                                 <td><span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1rem', color: 'var(--primary)' }}>{d.code}</span></td>
