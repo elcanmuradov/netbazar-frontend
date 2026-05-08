@@ -9,12 +9,12 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
- "dependencies": {
+  "dependencies": {
     "@stomp/stompjs": "^7.3.0",
     "@vitejs/plugin-react": "^4.2.0",
     "axios": "^1.7.9",
     "framer-motion": "^11.0.8",
-    "jwt-decode": "^4.0.0",
+    "jwt-decode": "^3.1.2",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -22,14 +22,13 @@
     "sockjs-client": "^1.6.1",
     "stompjs": "^2.3.3",
     "vite": "^5.0.0"
-},
-"devDependencies": {
+  },
+  "devDependencies": {
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "eslint": "^8.53.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.4"
+  }
 }
-}
-

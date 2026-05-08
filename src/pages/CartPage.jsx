@@ -17,6 +17,9 @@ const CartPage = () => {
     const [promoError, setPromoError] = useState('');
     const [isValidatingPromo, setIsValidatingPromo] = useState(false);
 
+    const uniqueSellerIds = [...new Set(cartItems.map(item => item.userId).filter(Boolean).map(String))];
+    const cartSellerId = uniqueSellerIds.length === 1 ? uniqueSellerIds[0] : null;
+
     const applyPromoCode = async () => {
     if (!orderForm.promoCode.trim()) {
         setPromoError('Promo kod daxil edin');
@@ -27,9 +30,12 @@ const CartPage = () => {
     setPromoError('');
     try {
         const response = await api.get(`/discounts/validate/${orderForm.promoCode.toUpperCase()}`, {
-            params: { totalAmount: getCartTotal() }
+            params: {
+                totalAmount: getCartTotal(),
+                sellerId: cartSellerId
+            }
         });
-        const validation = response.data?.data; // ApiResponse wraps data
+        const validation = response.data?.data; 
         if (validation?.valid) {
             setAppliedDiscount(validation);
         } else {
