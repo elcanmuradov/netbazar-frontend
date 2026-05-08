@@ -11,14 +11,11 @@ const CartPage = () => {
     const { user, token } = useContext(AuthContext);
     const navigate = useNavigate();
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-    const [orderForm, setOrderForm] = useState({ paymentMethod: 'Kartla', deliveryCity: 'Bakı', promoCode: '', selectedSeller: null });
+    const [orderForm, setOrderForm] = useState({ paymentMethod: 'Kartla', deliveryCity: 'Bakı', promoCode: '' });
     const [isOrderingAction, setIsOrderingAction] = useState(false);
     const [appliedDiscount, setAppliedDiscount] = useState(null);
     const [promoError, setPromoError] = useState('');
     const [isValidatingPromo, setIsValidatingPromo] = useState(false);
-    const [sellerSearchResults, setSellerSearchResults] = useState([]);
-    const [isSearchingSellers, setIsSearchingSellers] = useState(false);
-    const [showSellerDropdown, setShowSellerDropdown] = useState(false);
 
     const applyPromoCode = async () => {
     if (!orderForm.promoCode.trim()) {
@@ -45,60 +42,9 @@ const CartPage = () => {
     }
 };
 
-    const searchSellers = async (query) => {
-        if (!query.trim()) {
-            setSellerSearchResults([]);
-            return;
-        }
-
-        setIsSearchingSellers(true);
-        try {
-            const response = await api.get('/sellers/search', {
-                params: { query: query }
-            });
-            setSellerSearchResults(response.data?.data || []);
-            setShowSellerDropdown(true);
-        } catch (error) {
-            console.error('Satıcı axtarışı xətası:', error);
-            setSellerSearchResults([]);
-        } finally {
-            setIsSearchingSellers(false);
-        }
-    };
-
-    const handleSellerSelect = (seller) => {
-        setOrderForm(prev => ({
-            ...prev,
-            selectedSeller: seller,
-            promoCode: ''
-        }));
-        setSellerSearchResults([]);
-        setShowSellerDropdown(false);
-        setPromoError('');
-        setAppliedDiscount(null);
-    };
-
-    const handleSellerInputChange = (e) => {
-        const value = e.target.value;
-        setOrderForm(prev => ({
-            ...prev,
-            selectedSeller: null,
-            promoCode: value
-        }));
-        setPromoError('');
-        setAppliedDiscount(null);
-        
-        if (value.trim()) {
-            searchSellers(value);
-        } else {
-            setSellerSearchResults([]);
-            setShowSellerDropdown(false);
-        }
-    };
-
     const removePromoCode = () => {
         setAppliedDiscount(null);
-        setOrderForm(prev => ({ ...prev, promoCode: '', selectedSeller: null }));
+        setOrderForm(prev => ({ ...prev, promoCode: '' }));
         setPromoError('');
     };
 
@@ -119,11 +65,9 @@ const CartPage = () => {
             navigate('/login');
             return;
         }
-        setOrderForm({ paymentMethod: 'Kartla', deliveryCity: 'Bakı', promoCode: '', selectedSeller: null });
+        setOrderForm({ paymentMethod: 'Kartla', deliveryCity: 'Bakı', promoCode: '' });
         setAppliedDiscount(null);
         setPromoError('');
-        setSellerSearchResults([]);
-        setShowSellerDropdown(false);
         setIsOrderModalOpen(true);
     };
 
@@ -305,58 +249,24 @@ const CartPage = () => {
 
                                 <div className="form-group">
                                     <label style={{ fontWeight: 700, marginBottom: '0.5rem', display: 'block' }}>Promo Kod (Opsional)</label>
-                                    <div style={{ display: 'flex', gap: '0.5rem', position: 'relative' }}>
-                                        <div style={{ flex: 1, position: 'relative' }}>
-                                            <input
-                                                type="text"
-                                                value={orderForm.promoCode}
-                                                onChange={handleSellerInputChange}
-                                                placeholder={orderForm.selectedSeller ? `${orderForm.selectedSeller.username} üçün kod yazın` : 'Satıcı adı və ya kod yazın'}
-                                                disabled={!!appliedDiscount}
-                                                style={{ 
-                                                    width: '100%',
-                                                    padding: '12px', 
-                                                    borderRadius: '12px', 
-                                                    border: '1px solid var(--border)',
-                                                    textTransform: 'uppercase'
-                                                }}
-                                            />
-                                            {showSellerDropdown && sellerSearchResults.length > 0 && (
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    top: '100%',
-                                                    left: 0,
-                                                    right: 0,
-                                                    background: 'white',
-                                                    border: '1px solid var(--border)',
-                                                    borderTop: 'none',
-                                                    borderRadius: '0 0 12px 12px',
-                                                    maxHeight: '200px',
-                                                    overflowY: 'auto',
-                                                    zIndex: 10,
-                                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                                                }}>
-                                                    {sellerSearchResults.map((seller) => (
-                                                        <div
-                                                            key={seller.id}
-                                                            onClick={() => handleSellerSelect(seller)}
-                                                            style={{
-                                                                padding: '12px',
-                                                                borderBottom: '1px solid var(--border)',
-                                                                cursor: 'pointer',
-                                                                background: orderForm.selectedSeller?.id === seller.id ? 'rgba(18,119,73,0.1)' : 'white',
-                                                                transition: 'background 0.2s'
-                                                            }}
-                                                            onMouseEnter={(e) => e.target.style.background = 'rgba(18,119,73,0.05)'}
-                                                            onMouseLeave={(e) => e.target.style.background = orderForm.selectedSeller?.id === seller.id ? 'rgba(18,119,73,0.1)' : 'white'}
-                                                        >
-                                                            <div style={{ fontWeight: 600 }}>{seller.username}</div>
-                                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>ID: {seller.id.substring(0, 8)}...</div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input
+                                            type="text"
+                                            value={orderForm.promoCode}
+                                            onChange={(e) => {
+                                                setOrderForm(prev => ({ ...prev, promoCode: e.target.value }));
+                                                setPromoError('');
+                                            }}
+                                            placeholder="Promo kodu daxil edin"
+                                            disabled={!!appliedDiscount}
+                                            style={{ 
+                                                flex: 1,
+                                                padding: '12px', 
+                                                borderRadius: '12px', 
+                                                border: '1px solid var(--border)',
+                                                textTransform: 'uppercase'
+                                            }}
+                                        />
                                         {appliedDiscount ? (
                                             <button
                                                 type="button"
@@ -380,16 +290,17 @@ const CartPage = () => {
                                             <button
                                                 type="button"
                                                 onClick={applyPromoCode}
-                                                disabled={isValidatingPromo || !orderForm.selectedSeller}
+                                                disabled={isValidatingPromo}
                                                 style={{
                                                     padding: '12px 16px',
                                                     borderRadius: '12px',
                                                     border: 'none',
-                                                    background: orderForm.selectedSeller ? 'var(--primary)' : '#ccc',
+                                                    background: 'var(--primary)',
                                                     color: 'white',
-                                                    cursor: orderForm.selectedSeller ? 'pointer' : 'not-allowed',
+                                                    cursor: 'pointer',
                                                     fontWeight: 600,
-                                                    whiteSpace: 'nowrap'
+                                                    whiteSpace: 'nowrap',
+                                                    opacity: isValidatingPromo ? 0.6 : 1
                                                 }}
                                             >
                                                 {isValidatingPromo ? 'Yoxlanılır...' : 'Tətbiq Et'}
@@ -398,11 +309,6 @@ const CartPage = () => {
                                     </div>
                                     {promoError && (
                                         <div style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.5rem' }}>{promoError}</div>
-                                    )}
-                                    {orderForm.selectedSeller && !appliedDiscount && (
-                                        <div style={{ color: 'var(--primary)', fontSize: '0.85rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <Check size={16} /> Satıcı seçildi: {orderForm.selectedSeller.username}
-                                        </div>
                                     )}
                                     {appliedDiscount && (
                                         <div style={{ color: '#16a34a', fontSize: '0.85rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
