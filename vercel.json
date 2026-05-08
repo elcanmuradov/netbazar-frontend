@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://api.netbazar.tech/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ]
 }

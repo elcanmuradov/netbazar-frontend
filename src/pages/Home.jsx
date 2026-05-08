@@ -757,39 +757,7 @@ const Home = () => {
                 </div>
             </section>
 
-            <section className="market-section" style={{ marginTop: '2.5rem' }}>
-                <div className="section-headline">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-                        <h2 className="market-section-title">Flash Sale</h2>
-                        <div className="countdown">
-                            <div className="cd-unit">{countdownHours}</div>
-                            <div className="cd-sep">:</div>
-                            <div className="cd-unit">{countdownMinutes}</div>
-                            <div className="cd-sep">:</div>
-                            <div className="cd-unit">{countdownSeconds}</div>
-                        </div>
-                    </div>
-                    <a href="#products" className="section-link">Hamısını gör <ChevronRight size={16} /></a>
-                </div>
-
-                <div className="market-grid">
-                    {loading ? (
-                        <div style={{ textAlign: 'center', padding: '3rem', gridColumn: '1/-1' }}>Yüklənir...</div>
-                    ) : featuredProducts.length > 0 ? (
-                        featuredProducts.map((product, index) => (
-                            <MarketProductCard
-                                key={product.id}
-                                product={product}
-                                previewImage={readPreviewImage(previewCache, product.id)}
-                                index={index}
-                                calculateDiscountedPrice={calculateDiscountedPrice}
-                            />
-                        ))
-                    ) : (
-                        <div style={{ textAlign: 'center', padding: '3rem', gridColumn: '1/-1', color: 'var(--text-light)' }}>Heç bir məhsul tapılmadı.</div>
-                    )}
-                </div>
-            </section>
+          
 
             <section className="market-section" style={{ marginTop: '2.5rem' }}>
                 <div className="promo-row">
