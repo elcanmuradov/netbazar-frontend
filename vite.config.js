@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -16,4 +15,12 @@ export default defineConfig({
       }
     }
   },
+  optimizeDeps: {
+    include: ['jwt-decode']
+  },
+  build: {
+    commonjsOptions: {
+      include: [/jwt-decode/, /node_modules/]
+    }
+  }
 })
