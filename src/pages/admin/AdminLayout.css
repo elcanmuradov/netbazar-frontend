@@ -1,0 +1,32 @@
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+.admin-content {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-content-inner {
+    width: 100%;
+    overflow-y: auto;
+    flex: 1;
+}
+
+@media (max-width: 1024px) {
+    .admin-container {
+        flex-direction: column;
+    }
+    
+    .admin-content {
+        padding: 1.5rem var(--container-padding);
+    }
+}
+

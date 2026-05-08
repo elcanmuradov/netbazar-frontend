@@ -1,0 +1,14 @@
+.seller-commission-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.commission-badge {
+    background: rgba(175, 134, 47, 0.1);
+    color: var(--accent);
+    padding: 0.25rem 0.6rem;
+    border-radius: 2rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
