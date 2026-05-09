@@ -3,8 +3,8 @@ import { Send, Image, MoreVertical, Flag, AlertTriangle } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
-import axios from 'axios';
 import { useToast } from '../components/Toast/ToastContext';
+import api from '../api/axios';
 
 import { useLocation, Link } from 'react-router-dom';
 
@@ -52,11 +52,7 @@ const Chat = () => {
     const resolveProfileImage = async (targetUserId) => {
         if (!targetUserId) return '';
         try {
-            const profileRes = await axios.get(`/api/profile?id=${targetUserId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const profileRes = await api.get(`/profile?id=${targetUserId}`);
             const profileData = profileRes.data?.data || profileRes.data;
             return profileData?.profileImageUrl || '';
         } catch (error) {
@@ -96,9 +92,8 @@ const Chat = () => {
 
     const fetchConversations = async () => {
         try {
-            const res = await axios.get('/api/chat/conversations', {
+            const res = await api.get('/chat/conversations', {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'X-User-Id': user?.id
                 }
             });
@@ -163,11 +158,7 @@ const Chat = () => {
 
         const fetchOwnProfile = async () => {
             try {
-                const res = await axios.get('/api/profile', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const res = await api.get('/profile');
                 const myProfile = res.data?.data || res.data;
                 setMyProfileImageUrl(myProfile?.profileImageUrl || '');
             } catch (error) {
@@ -186,9 +177,8 @@ const Chat = () => {
 
     const fetchHistory = async (otherUserId) => {
         try {
-            const res = await axios.get(`/api/chat/history/${otherUserId}`, {
+            const res = await api.get(`/chat/history/${otherUserId}`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'X-User-Id': user?.id
                 }
             });
@@ -223,7 +213,8 @@ const Chat = () => {
         if (!token || !user) return;
         fetchConversations();
 
-        const socket = new SockJS('/api/chat/ws');
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.netbazar.tech';
+        const socket = new SockJS(`${baseUrl}/chat/ws`);
         const stompClient = new Client({
             webSocketFactory: () => socket,
             connectHeaders: { Authorization: `Bearer ${token}` },
@@ -380,10 +371,9 @@ const Chat = () => {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const response = await axios.post('/api/media/upload', formData, {
+                const response = await api.post('/media/upload', formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'multipart/form-data'
                     }
                 });
 
@@ -404,11 +394,7 @@ const Chat = () => {
     const handleReportMessage = async (messageId) => {
         if (!window.confirm("Bu mesajı şikayət etmək istədiyinizdən əminsiniz?")) return;
         try {
-            await axios.put(`/api/chat/${messageId}/report-message`, {}, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            await api.put(`/chat/${messageId}/report-message`, {});
             
             setMessages(prev => prev.map(m => m.id === messageId ? { ...m, isReported: true } : m));
             toast.success("Sikayetiniz qebul olundu. Tesekkurler!");

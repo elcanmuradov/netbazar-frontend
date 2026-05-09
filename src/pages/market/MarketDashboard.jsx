@@ -148,43 +148,63 @@ const MarketDashboard = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Reset input so the same file can be reselected
+        e.target.value = '';
+
+        // Local preview that we keep until a real URL comes back from the server
+        const previewUrl = URL.createObjectURL(file);
+        const fieldKey = type === 'banner' ? 'bannerImageUrl' : 'profileImageUrl';
+        const cacheKey = type === 'banner' ? SELLER_BANNER_CACHE_KEY : SELLER_PHOTO_CACHE_KEY;
+
         try {
             setUploading(true);
+
+            // Optimistic update first, so user sees instant feedback
+            setSellerProfile(prev => ({ ...(prev || {}), [fieldKey]: previewUrl }));
+
             const formData = new FormData();
             formData.append('file', file);
 
             const endpoint = type === 'banner' ? '/seller/profile/banner' : '/seller/profile/photo';
-            const response = await api.put(endpoint, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            // Do NOT set Content-Type manually — axios interceptor strips it so the browser
+            // can add the proper multipart boundary. Setting it here breaks the upload.
+            const response = await api.put(endpoint, formData);
 
-            // Optimistic update with local cache
-            const fakeUrl = URL.createObjectURL(file);
-            const cacheKey = type === 'banner' ? SELLER_BANNER_CACHE_KEY : SELLER_PHOTO_CACHE_KEY;
-            
-            sessionStorage.setItem(cacheKey, JSON.stringify({
-                url: fakeUrl,
-                expiresAt: Date.now() + 10 * 60 * 1000
-            }));
-
-            setSellerProfile(prev => ({
-                ...prev,
-                [type === 'banner' ? 'bannerImageUrl' : 'profileImageUrl']: fakeUrl
-            }));
-
-            if (response.data?.success) {
-                // Refresh profile data
-                const profileResponse = await api.get(`/seller/profile/${user.id}`);
-                if (profileResponse.data?.data) {
-                    setSellerProfile(profileResponse.data.data);
-                }
-                toast.success(`${type === 'banner' ? 'Banner' : 'Profil fotosu'} yükləndi`);
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Server xəta qaytardı');
             }
+
+            // Refresh profile data — keep optimistic preview if backend hasn't returned the new URL yet
+            try {
+                const profileResponse = await api.get(`/seller/profile/${user.id}`);
+                const fresh = profileResponse?.data?.data;
+                if (fresh) {
+                    const serverUrl = fresh[fieldKey];
+                    setSellerProfile(prev => ({
+                        ...fresh,
+                        // If the server URL is missing/blank, keep the local preview so the image doesn't disappear
+                        [fieldKey]: serverUrl && serverUrl.trim() !== '' ? serverUrl : previewUrl,
+                    }));
+
+                    if (serverUrl && serverUrl.trim() !== '') {
+                        sessionStorage.setItem(cacheKey, JSON.stringify({
+                            url: serverUrl,
+                            expiresAt: Date.now() + 10 * 60 * 1000,
+                        }));
+                    }
+                }
+            } catch (refetchErr) {
+                console.warn('Profile refetch after upload failed; keeping local preview', refetchErr);
+            }
+
+            toast.success(`${type === 'banner' ? 'Banner' : 'Profil fotosu'} yükləndi`);
         } catch (err) {
-            console.error(`Error uploading ${type}:`, err);
-            toast.error(`${type === 'banner' ? 'Banner' : 'Profil fotosu'} yükləmə xətası`);
+            // Roll back optimistic update on hard failure
+            setSellerProfile(prev => ({ ...(prev || {}), [fieldKey]: prev?.[fieldKey] === previewUrl ? null : prev?.[fieldKey] }));
+            const status = err?.response?.status;
+            const serverMsg = err?.response?.data?.message;
+            console.error(`Error uploading ${type}:`, status, serverMsg, err);
+            toast.error(`${type === 'banner' ? 'Banner' : 'Profil fotosu'} yükləmə xətası${serverMsg ? ': ' + serverMsg : ''}`);
         } finally {
             setUploading(false);
         }
