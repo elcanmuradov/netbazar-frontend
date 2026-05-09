@@ -203,9 +203,9 @@ const Home = () => {
     const countdownMinutes = String(Math.floor((countdown % 3600) / 60)).padStart(2, '0');
     const countdownSeconds = String(countdown % 60).padStart(2, '0');
 
-    const visibleProducts = products.slice(0, 10);
+    const visibleProducts = products;
     const featuredProducts = visibleProducts.slice(0, 5);
-    const recommendedProducts = visibleProducts.slice(5, 10);
+    const recommendedProducts = visibleProducts.length > 5 ? visibleProducts.slice(5) : [];
 
     return (
         <div className="animate-fade-in market-page">
