@@ -204,11 +204,7 @@ const AddProduct = () => {
                 formDataPayload.append('files', file);
             });
 
-            const response = await api.post(`/user/${user.id}/product/create`, formDataPayload, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            const response = await api.post(`/user/${user.id}/product/create`, formDataPayload);
 
             const createdProductId = response?.data?.data?.id || response?.data?.id;
             if (createdProductId && images.length > 0) {
@@ -235,7 +231,12 @@ const AddProduct = () => {
             navigate("/", { state: { optimisticProduct } });
         } catch (error) {
             console.error('Xəta:', error);
-            alert('Məhsul yaradılarkən xəta baş verdi: ' + (error.response?.data?.message || error.message));
+            if (!error.response) {
+                alert('Şəbəkə xətası baş verdi. İnternet bağlantınızı yoxlayın və yenidən cəhd edin.');
+            } else {
+                const msg = error.response?.data?.message || error.response?.data?.error || `Xəta kodu: ${error.response.status}`;
+                alert('Məhsul yaradılarkən xəta baş verdi: ' + msg);
+            }
         } finally {
             setLoading(false);
         }
