@@ -232,7 +232,7 @@ const AddProduct = () => {
 
             setLoadingMessage('Məhsul uğurla yaradıldı!');
             alert("Məhsul uğurla yerləşdirildi!");
-            navigate("/seller/dashboard", { state: { optimisticProduct } });
+            navigate("/", { state: { optimisticProduct } });
         } catch (error) {
             console.error('Xəta:', error);
             alert('Məhsul yaradılarkən xəta baş verdi: ' + (error.response?.data?.message || error.message));

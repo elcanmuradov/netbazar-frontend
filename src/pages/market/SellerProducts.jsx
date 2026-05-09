@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { ShoppingBag, Plus, Edit2, Trash2, Search } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import RefreshBtn from '../../components/admin/RefreshBtn';
 import api from '../../api/axios';
@@ -10,6 +10,7 @@ import './SellerProducts.css';
 const SellerProducts = () => {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -20,15 +21,33 @@ const SellerProducts = () => {
         setLoading(true);
         try {
             const res = await api.get(`/user/${user.id}/product`, { params: { size: 100 } });
-            setProducts(res.data?.data?.content || []);
+            let productsData = res.data?.data?.content || [];
+            
+            // Əgər yeni məhsul əlavə edildisə, optimistic product'ı önə əlavə et
+            if (location.state?.optimisticProduct) {
+                const optimistic = location.state.optimisticProduct;
+                // Mövcud olmayan ürünü ilk başa koy
+                if (!productsData.find(p => p.id === optimistic.id)) {
+                    productsData = [optimistic, ...productsData];
+                }
+            }
+            
+            setProducts(productsData);
         } catch (e) {
             console.error('Products fetch error', e);
         } finally {
             setLoading(false);
         }
-    }, [user?.id]);
+    }, [user?.id, location.state?.optimisticProduct]);
 
-    useEffect(() => { fetchProducts(); }, [fetchProducts]);
+    useEffect(() => { 
+        fetchProducts();
+        // Yeni ürün əlavə edildisə, 2 saniyə sonra API'dən yenile
+        if (location.state?.optimisticProduct) {
+            const timer = setTimeout(() => fetchProducts(), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [fetchProducts, location.state?.optimisticProduct]);
 
     const handleDelete = async (productId) => {
         if (!window.confirm('Bu məhsulu silmək istədiyinizə əminsiniz?')) return;
