@@ -204,8 +204,6 @@ const Home = () => {
     const countdownSeconds = String(countdown % 60).padStart(2, '0');
 
     const visibleProducts = products;
-    const featuredProducts = visibleProducts.slice(0, 5);
-    const recommendedProducts = visibleProducts.length > 5 ? visibleProducts.slice(5) : [];
 
     return (
         <div className="animate-fade-in market-page">
@@ -785,13 +783,13 @@ const Home = () => {
                 <div id="products" className="market-grid">
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '3rem', gridColumn: '1/-1' }}>Yüklənir...</div>
-                    ) : recommendedProducts.length > 0 ? (
-                        recommendedProducts.map((product, index) => (
+                    ) : visibleProducts.length > 0 ? (
+                        visibleProducts.map((product, index) => (
                             <MarketProductCard
                                 key={product.id}
                                 product={product}
                                 previewImage={readPreviewImage(previewCache, product.id)}
-                                index={index + 5}
+                                index={index}
                                 calculateDiscountedPrice={calculateDiscountedPrice}
                             />
                         ))
