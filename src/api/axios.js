@@ -57,10 +57,22 @@ api.interceptors.response.use(
     };
 
     if (error.response && error.response.status === 401 && !isAuthEndpoint) {
-      localStorage.removeItem('token');
-      
-      if (isProtectedRoute(window.location.pathname)) {
-        window.location.href = getLoginPathForCurrentRoute(window.location.pathname);
+      const storedToken = localStorage.getItem('token');
+      let tokenExpired = true;
+      if (storedToken) {
+        try {
+          const decoded = JSON.parse(window.atob(storedToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          tokenExpired = decoded.exp * 1000 < Date.now();
+        } catch {
+          tokenExpired = true;
+        }
+      }
+
+      if (tokenExpired) {
+        localStorage.removeItem('token');
+        if (isProtectedRoute(window.location.pathname)) {
+          window.location.href = getLoginPathForCurrentRoute(window.location.pathname);
+        }
       }
     }
     return Promise.reject(error);

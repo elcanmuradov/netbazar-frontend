@@ -154,11 +154,14 @@ const Chat = () => {
     }, [location.state]);
 
     useEffect(() => {
-        if (!token) return;
+        if (!token || !user) return;
 
         const fetchOwnProfile = async () => {
             try {
-                const res = await api.get('/profile');
+                const roleText = String(user?.role || user?.roles || user?.userRole || user?.authorities || '').toUpperCase();
+                const isSeller = roleText.includes('SELLER') || roleText.includes('MARKET');
+                const profileUrl = isSeller ? `/seller/profile/${user.id}` : '/profile';
+                const res = await api.get(profileUrl);
                 const myProfile = res.data?.data || res.data;
                 setMyProfileImageUrl(myProfile?.profileImageUrl || '');
             } catch (error) {
@@ -167,7 +170,7 @@ const Chat = () => {
         };
 
         fetchOwnProfile();
-    }, [token]);
+    }, [token, user]);
 
     const selectedChatRef = useRef(null);
 
